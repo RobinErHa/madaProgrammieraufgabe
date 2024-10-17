@@ -6,27 +6,29 @@ import java.util.Random;
 public class Rsa {
 
 	private PublicKey publickey;
-
-	public PublicKey getPublickey() {
-		return publickey;
-	}
-
-	private final PrivateKey privateKey = new PrivateKey();
-
-	public PrivateKey getPrivateKey() {
-		return privateKey;
-	}
+	private final PrivateKey privateKey;
 
 	// Erstelle zwei Primzahlen p und q
 	private final BigInteger p = BigInteger.probablePrime(1024, new Random());
 	private final BigInteger q = BigInteger.probablePrime(1024, new Random());
 
 	// Rechne phi(n)
-	private final BigInteger phiN = phiVonN();
+	private final BigInteger phiN;
 
-	// rechnet phi(n) = (p-1) * (q-1)
-	private BigInteger phiVonN() {
-		return p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+	public Rsa() {
+		// Calculate phi(n) = (p-1)*(q-1)
+		this.phiN = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+
+		// Initialize private key, which will also initialize the public key
+		this.privateKey = new PrivateKey();
+	}
+
+	public PublicKey getPublickey() {
+		return publickey;
+	}
+
+	public PrivateKey getPrivateKey() {
+		return privateKey;
 	}
 
 	private class PrivateKey {
@@ -44,8 +46,10 @@ public class Rsa {
 		private BigInteger setE() {
 			BigInteger b;
 			do {
-				b = new BigInteger(n.bitLength(), new Random()).mod(n);
-			} while ((!b.gcd(n).equals(BigInteger.ONE) && !b.equals(BigInteger.ONE))
+				b = new BigInteger(phiN.bitLength(), new Random())
+						.mod(phiN.subtract(BigInteger.ONE))
+						.add(BigInteger.ONE);
+			} while ((!b.gcd(phiN).equals(BigInteger.ONE) && !b.equals(BigInteger.ONE))
 					|| b.equals(BigInteger.ZERO));
 
 			return b;
@@ -71,27 +75,34 @@ public class Rsa {
 	}
 
 	public BigInteger erweiterterEuklydischerAlgorithmus(BigInteger phiN, BigInteger e) {
-		var a1 = phiN;
-		var b1 = e;
+		var a = phiN;
+		var b = e;
 		var x0 = BigInteger.ONE;
 		var y0 = BigInteger.ZERO;
 		var x1 = BigInteger.ZERO;
 		var y1 = BigInteger.ONE;
-		BigInteger q, r;
 
-		while (b1 != BigInteger.ZERO) {
-			var temp = a1.divideAndRemainder(b1);
+		var temp = a.divideAndRemainder(b);
+		BigInteger q = temp[0];
+		BigInteger r = temp[1];
+
+		while (b != BigInteger.ZERO) {
+			temp = a.divideAndRemainder(b);
 			q = temp[0];
 			r = temp[1];
-			a1 = b1;
-			b1 = r;
-			x0 = x1;
-			y0 = y1;
+			a = b;
+			b = r;
+
+			var tempX = x1;
 			x1 = x0.subtract(x1.multiply(q));
+			x0 = tempX;
+
+			var tempY = y1;
 			y1 = y0.subtract(y1.multiply(q));
+			y0 = tempY;
 		}
-		if (y0.compareTo(BigInteger.ONE) < 1) {
-			y0.add(q);
+		if (y0.compareTo(BigInteger.ONE) < 0) {
+			y0 = y0.add(phiN);
 		}
 		return y0;
 	}
