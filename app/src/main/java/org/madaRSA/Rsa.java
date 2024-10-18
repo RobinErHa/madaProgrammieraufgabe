@@ -5,45 +5,72 @@ import java.util.Random;
 
 public class Rsa {
 
-	private PublicKey publickey;
-	private final PrivateKey privateKey;
+	private final PublicKey publicKey;
+	private PrivateKey privateKey;
 
-	// Erstelle zwei Primzahlen p und q
 	private final BigInteger p = BigInteger.probablePrime(1024, new Random());
 	private final BigInteger q = BigInteger.probablePrime(1024, new Random());
 
-	// Rechne phi(n)
 	private final BigInteger phiN;
 
+	/**
+	 * Creates a new RSA KeyPair
+	 *
+	 * @private BigInteger p - a random prime number 1024bit long
+	 * @private BigInteger q - a random prime number 1024bit long
+	 * @private BigInteger phiN - phi(n) calculated from (p-1)*(q-1);
+	 * @see PublicKey creates a new public key - which then generates the
+	 *      corresponding private key
+	 */
 	public Rsa() {
+
 		// Calculate phi(n) = (p-1)*(q-1)
 		this.phiN = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
 
-		// Initialize private key, which will also initialize the public key
-		this.privateKey = new PrivateKey();
+		// Initialize private key, which will also initialize the private key
+		this.publicKey = new PublicKey();
 	}
 
-	public PublicKey getPublickey() {
-		return publickey;
+	public PublicKey getPublicKey() {
+		return publicKey;
 	}
 
 	public PrivateKey getPrivateKey() {
 		return privateKey;
 	}
 
-	private class PrivateKey {
+	public class PublicKey {
 
 		private final BigInteger n;
 		private final BigInteger e;
 
-		private PrivateKey() {
-			n = p.multiply(q);
-			e = setE();
-			publickey = new PublicKey(n, e);
+		public BigInteger getN() {
+			return n;
 		}
 
-		// Finde eine zufaellige Zahl e: 1 < e < n mit ggT(N, e) = 1
-		private BigInteger setE() {
+		public BigInteger getE() {
+			return e;
+		}
+
+		/**
+		 * Creates a new PrivateKey. sets n = p * q calls extendedEuclydeanAlgorithm to
+		 * find the inverse
+		 * of e
+		 *
+		 * @see PublicKey(BigInteger n, BigInteger e)
+		 */
+		private PublicKey() {
+			n = p.multiply(q);
+			e = setRandomE();
+			privateKey = new PrivateKey(n, e);
+		}
+
+		/**
+		 * Find random number e: 1 < e < n, with gcd(phiN, e) = 1
+		 *
+		 * @return part of the privateKey: e
+		 */
+		private BigInteger setRandomE() {
 			BigInteger b;
 			do {
 				b = new BigInteger(phiN.bitLength(), new Random())
@@ -54,15 +81,28 @@ public class Rsa {
 
 			return b;
 		}
+
+		/**
+		 * Sets the private key and creates corresponding publicKey
+		 *
+		 * @param n the product of two prim numbers
+		 * @param d part of the private key (n, d)
+		 * @see PublicKey(BigInteger n, BigInteger d)
+		 */
+		public PublicKey(BigInteger n, BigInteger e) {
+			this.n = n;
+			this.e = e;
+			privateKey = new PrivateKey(n, e);
+		}
 	}
 
-	public class PublicKey {
+	public class PrivateKey {
 		private final BigInteger n;
 		private final BigInteger d;
 
-		public PublicKey(BigInteger n, BigInteger e) {
+		public PrivateKey(BigInteger n, BigInteger e) {
 			this.n = n;
-			d = erweiterterEuklydischerAlgorithmus(phiN, e);
+			d = extendedEuclydeanAlgorithm(phiN, e);
 		}
 
 		public BigInteger getN() {
@@ -74,9 +114,14 @@ public class Rsa {
 		}
 	}
 
-	public BigInteger erweiterterEuklydischerAlgorithmus(BigInteger phiN, BigInteger e) {
+	/**
+	 * @param phiN -> phi(n)
+	 * @param d
+	 * @returns the inverse of e
+	 */
+	public BigInteger extendedEuclydeanAlgorithm(BigInteger phiN, BigInteger d) {
 		var a = phiN;
-		var b = e;
+		var b = d;
 		var x0 = BigInteger.ONE;
 		var y0 = BigInteger.ZERO;
 		var x1 = BigInteger.ZERO;
@@ -86,7 +131,7 @@ public class Rsa {
 		BigInteger q = temp[0];
 		BigInteger r = temp[1];
 
-		while (b != BigInteger.ZERO) {
+		while (!b.equals(BigInteger.ZERO)) {
 			temp = a.divideAndRemainder(b);
 			q = temp[0];
 			r = temp[1];
@@ -105,5 +150,24 @@ public class Rsa {
 			y0 = y0.add(phiN);
 		}
 		return y0;
+	}
+
+	/** Algorithm */
+	// TODO still flawed check with a test
+	public BigInteger fastExponent(BigInteger x, PrivateKey p) {
+		var m = p.n;
+		int i = m.bitLength() - 1;
+		var h = BigInteger.ONE;
+		var k = x;
+
+		while (i >= 0) {
+			if (m.testBit(i)) {
+				h = h.multiply(k).mod(m);
+			}
+			k = k.pow(2).mod(m);
+			i = i - 1;
+		}
+
+		return h;
 	}
 }
