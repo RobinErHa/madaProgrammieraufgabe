@@ -17,7 +17,7 @@ public class RsaTest {
 		BigInteger e = new BigInteger("17"); // Example e value
 
 		// Call the extendedEuclydeanAlgorithm method to get the result
-		BigInteger d = rsa.extendedEuclydeanAlgorithm(phiN, e);
+		BigInteger d = Algorithm.extendedEuclydeanAlgorithm(phiN, e);
 
 		// Validate that (e * d) % phi(n) == 1
 		BigInteger result = e.multiply(d).mod(phiN);
@@ -26,5 +26,16 @@ public class RsaTest {
 		// phi(n)
 		assertEquals(
 				"The result should be 1, indicating e * d ≡ 1 (mod phi(n))", BigInteger.ONE, result);
+	}
+
+	@Test
+	public void testFastExponentAlgorithm() {
+		var result = Algorithm.fastExponent(
+				BigInteger.valueOf(9), BigInteger.valueOf(25), BigInteger.valueOf(11));
+		assertEquals(1, result.intValue());
+
+		var result2 = Algorithm.fastExponent(
+				BigInteger.valueOf(5), BigInteger.valueOf(36), BigInteger.valueOf(11));
+		assertEquals(5, result2.intValue());
 	}
 }

@@ -5,6 +5,8 @@ import java.math.BigInteger;
 public class Algorithm {
 
 	/**
+	 * Implementation of the extended euclydean algorithm
+	 *
 	 * @param phiN -> phi(n)
 	 * @param d
 	 * @returns e -> e modulo phi(n) is the inverse of d modulo phi(n)
@@ -44,16 +46,16 @@ public class Algorithm {
 
 	/** Algorithm */
 	public static BigInteger fastExponent(BigInteger base, BigInteger exponent, BigInteger m) {
-		int i = m.bitLength() - 1;
+		int i = 0;
 		var h = BigInteger.ONE;
 		var k = base;
 
-		while (i >= 0) {
-			if (m.testBit(i)) {
+		while (i < exponent.bitLength()) {
+			if (exponent.testBit(i)) {
 				h = h.multiply(k).mod(m);
 			}
-			k = k.pow(2).mod(m);
-			i = i - 1;
+			k = k.multiply(k).mod(m);
+			i++;
 		}
 
 		return h;
