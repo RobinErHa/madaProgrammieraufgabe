@@ -7,13 +7,13 @@ public class Algorithm {
 	/**
 	 * Implementation of the extended euclydean algorithm
 	 *
-	 * @param phiN -> phi(n)
-	 * @param d
-	 * @returns e -> e modulo phi(n) is the inverse of d modulo phi(n)
+	 * @param phiN: phi(n)
+	 * @param e:    Part of the Public Key (or the Private Key)
+	 * @returns d: d modulo phi(n) is the inverse of e modulo phi(n)
 	 */
-	public static BigInteger extendedEuclydeanAlgorithm(BigInteger phiN, BigInteger d) {
+	public static BigInteger extendedEuclideanAlgorithm(BigInteger phiN, BigInteger e) {
 		var a = phiN;
-		var b = d;
+		var b = e;
 		var x0 = BigInteger.ONE;
 		var y0 = BigInteger.ZERO;
 		var x1 = BigInteger.ZERO;
@@ -41,10 +41,10 @@ public class Algorithm {
 		if (y0.compareTo(BigInteger.ONE) < 0) {
 			y0 = y0.add(phiN);
 		}
-		return y0;
+		return y0; // d
 	}
 
-	/** Algorithm */
+	/** Implementation of the fast exponent algorithm */
 	public static BigInteger fastExponent(BigInteger base, BigInteger exponent, BigInteger m) {
 		int i = 0;
 		var h = BigInteger.ONE;

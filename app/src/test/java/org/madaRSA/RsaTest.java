@@ -7,17 +7,14 @@ import org.junit.Test;
 
 public class RsaTest {
 
-	private final Rsa rsa = new Rsa();
-
 	@Test
 	public void testExtendedEuclydeanAlgorithm() {
 
 		// Example values for e and phi(n)
-		BigInteger phiN = new BigInteger("3233"); // Example phi(n) value
-		BigInteger e = new BigInteger("17"); // Example e value
+		BigInteger phiN = new BigInteger("3233");
+		BigInteger e = new BigInteger("17");
 
-		// Call the extendedEuclydeanAlgorithm method to get the result
-		BigInteger d = Algorithm.extendedEuclydeanAlgorithm(phiN, e);
+		BigInteger d = Algorithm.extendedEuclideanAlgorithm(phiN, e);
 
 		// Validate that (e * d) % phi(n) == 1
 		BigInteger result = e.multiply(d).mod(phiN);

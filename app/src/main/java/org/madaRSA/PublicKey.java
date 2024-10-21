@@ -15,6 +15,12 @@ public class PublicKey {
 		return e;
 	}
 
+	/**
+	 * Create new PublicKey
+	 *
+	 * @param n: sets n
+	 * @param e: sets e
+	 */
 	public PublicKey(BigInteger n, BigInteger e) {
 		this.n = n;
 		this.e = e;

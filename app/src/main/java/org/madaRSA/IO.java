@@ -80,10 +80,12 @@ public class IO {
 
 	/**
 	 * Encrypts given text with the given PublicKey Writes result of encryption to
-	 * 'chiffre.txt'
+	 * 'chiffre.txt' Every
+	 * character gets encrypted individually
 	 *
 	 * @param input     - Path to text
 	 * @param publicKey - Key to encrypt text with
+	 * @see Algorithm.fastExponent
 	 */
 	public static void encryptText(Path input, PublicKey publicKey) {
 		Path OutputText = Path.of("./src/main/java/org/madaRSA/chiffre.txt");
@@ -93,9 +95,8 @@ public class IO {
 			var line = reader.readLine();
 			while (line != null) {
 				var arr = line.toCharArray();
-				for (int i = 0; i < arr.length; i++) {
+				for (int i = 0; i < arr.length; i++) { // every character gets encrypted with fastExponent Algorithm
 					BigInteger base = BigInteger.valueOf(arr[i]);
-					System.out.println("char:" + base);
 					var encryptedChar = Algorithm.fastExponent(base, publicKey.getE(), publicKey.getN());
 					out.append(encryptedChar);
 					out.append(",");
@@ -117,21 +118,23 @@ public class IO {
 	/**
 	 * Decrypts given text with the given PrivateKey. Writes result of decryption to
 	 * 'text-d.txt'
+	 * Every character gets decrypted individually
 	 *
 	 * @param input      - Path to text
+	 * @param output     -path to output text
 	 * @param privateKey - Key to decrypt text with
+	 * @see Algorithm.fastExponent
 	 */
-	public static void decryptText(Path input, PrivateKey privateKey) {
-		Path OutputText = Path.of("./src/main/java/org/madaRSA/text-d.txt");
+	public static void decryptText(Path input, Path output, PrivateKey privateKey) {
 		StringBuilder out = new StringBuilder();
 		try (BufferedReader reader = Files.newBufferedReader(input)) {
 			var line = reader.readLine();
 			while (line != null) {
 				var arr = line.split(",");
-				for (int i = 0; i < arr.length; i++) {
+				for (int i = 0; i < arr.length; i++) { // every character gets decrypted with fastExponent Algorithm
 					BigInteger base = new BigInteger(arr[i]);
 					var decryptedChar = Algorithm.fastExponent(base, privateKey.getD(), privateKey.getN());
-					out.append((char) decryptedChar.intValue());
+					out.append((char) decryptedChar.intValue()); // converted back to char and added to out
 				}
 				line = reader.readLine();
 			}
@@ -139,10 +142,10 @@ public class IO {
 			System.err.println("Error while reading file: " + input + "\nError: " + e.getMessage());
 		}
 		try (BufferedWriter writer = Files.newBufferedWriter(
-				OutputText, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+				output, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			writer.write(out.toString());
 		} catch (IOException e) {
-			System.err.println("Error while writing file: " + OutputText + "\nError: " + e.getMessage());
+			System.err.println("Error while writing file: " + output + "\nError: " + e.getMessage());
 		}
 	}
 }
